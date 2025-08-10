@@ -199,44 +199,80 @@ function toggleMenu() {
       messSent: "Το μήνυμά σας:",
       projectTitle: "Έργο Ένα"
     }
-  };
+};
 
-// Language switch function
+// Function to update the text content and placeholders
+function updateContent(lang) {
+    // Update text content for all elements with data-i18n
+    const textElements = document.querySelectorAll('[data-i18n]');
+    textElements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            el.textContent = translations[lang][key];
+        }
+    });
 
-function changeLanguage(lang) {
-  // Update text content
-  const textElements = document.querySelectorAll('[data-i18n]');
-  textElements.forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (translations[lang][key]) {
-      el.textContent = translations[lang][key];
-    }
-  });
-
-  // Update placeholders
-  const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
-  placeholderElements.forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    if (translations[lang][key]) {
-      el.placeholder = translations[lang][key];
-    }
-  });
-
-  // Update the send button text
-  const sendBtn = document.querySelector('#contact-form button[data-i18n="sendButton"]');
-  if (sendBtn && translations[lang].sendButton) {
-    sendBtn.textContent = translations[lang].sendButton;
-  }
-
-  // Optional: update the language dropdown labels (if needed)
-  const options = document.querySelectorAll('#language-select option');
-  options.forEach(opt => {
-    const key = opt.getAttribute('data-i18n');
-    if (translations[lang][key]) {
-      opt.textContent = translations[lang][key];
-    }
-  });
+    // Update placeholders for all elements with data-i18n-placeholder
+    const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+    placeholderElements.forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key]) {
+            el.placeholder = translations[lang][key];
+        }
+    });
 }
 
+// Event listener for language change
+document.addEventListener('DOMContentLoaded', () => {
+    const languageSelect = document.getElementById("language-select");
 
-  
+    // Set initial language on page load
+    const initialLang = languageSelect.value;
+    updateContent(initialLang);
+
+    // Add event listener for when the user changes the language
+    languageSelect.addEventListener('change', (e) => {
+        const newLang = e.target.value;
+        updateContent(newLang);
+    });
+
+    // Form submission logic (already existing)
+    const form = document.getElementById("contact-form");
+    if (form) {
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const nameInput = form.querySelector('input[name="name"]');
+            const emailInput = form.querySelector('input[name="email"]');
+            const messageInput = form.querySelector('textarea[name="message"]');
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (!name || !email || !message) {
+                // Use the translated alert message
+                const currentLang = languageSelect.value;
+                const fillAllFieldsMsg = translations[currentLang]?.fillAllFields || "Please fill in all fields.";
+                alert(fillAllFieldsMsg);
+                return;
+            }
+
+            const currentLang = languageSelect.value;
+            const sentMessage = translations[currentLang]?.messageSent || "Message sent!";
+            const sentName = translations[currentLang]?.nameSent || "Name:";
+            const sentEmail = translations[currentLang]?.mailSent || "Email:";
+            const messageDescription = translations[currentLang]?.messSent || "Message:";
+
+            alert(`${sentMessage}\n\n${sentName} ${name}\n${sentEmail} ${email}\n${messageDescription} ${message}`);
+            console.log(`${sentName} ${name}`);
+            console.log(`${sentEmail} ${email}`);
+            console.log(`${messageDescription} ${message}`);
+
+            // Clear the fields
+            nameInput.value = "";
+            emailInput.value = "";
+            messageInput.value = "";
+        });
+    }
+});
